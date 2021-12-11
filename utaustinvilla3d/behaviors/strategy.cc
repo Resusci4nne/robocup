@@ -14,39 +14,109 @@ void NaoBehavior::beam( double& beamX, double& beamY, double& beamAngle ) {
 }
 
 
-SkillType NaoBehavior::selectSkill() {
-   VecPosition center=VecPosition(0,0,0);
-   VecPosition target1=VecPosition(3,4,0);
-   VecPosition target=VecPosition(3,3,0);
-   VecPosition goal=VecPosition(HALF_FIELD_X, 0, 0);
-   VecPosition temp;
-     if (worldModel->getUNum() == WO_TEAMMATE2){
+SkillType NaoBehavior::selectSkill() 
+{
+    VecPosition Posball=worldModel->getBall();
+    VecPosition target[4]={Posball+VecPosition(-0.5,0,0),Posball+VecPosition(4,0,0),Posball+VecPosition(0,1,0),Posball+VecPosition(0,-1,0)};
+    // worldModel->getRVSender()->clear(); // erases drawings from previous cycle
+    // worldModel->getRVSender()->drawPoint("ball", ball.getX()+1, ball.getY(), 10.0f, RVSender::MAGENTA);
+    double a[4][4];
+    double bmin[4]={1000,1000,1000,1000};
+    int bnum[4]={-1};
+    for(int i = 0; i < 4; ++i) 
+    {
+        VecPosition temp;
+        int playerNum =  WO_TEAMMATE1 + i;
+        if (worldModel->getUNum() == playerNum) {
+            temp = worldModel->getMyPosition();
+            
+        } else {
+            WorldObject* teammate = worldModel->getWorldObject(WO_TEAMMATE1 + i );
+            if (teammate->validPosition) {
+               temp = teammate->pos;
+            } else {
+                continue;
+            }}
+           for(int j=0;j<4;j++)
+          {
+              a[i][j] =temp.getDistanceTo(target[j]);
+              if(worldModel->getFallenTeammate(WO_TEAMMATE1 + i ))
+              {
+                  a[i][j]+=1;
 
+              }
+          } 
+        }
+    
+
+    for(int j=0;j<4;j++)
+    {
+        for(int i=0;i<4;i++)
+        {
+            if(a[i][j]<bmin[j])
+            {
+                bmin[j]=a[i][j];
+                bnum[j]=i;
+            }
+            
+        }
+        for(int x=0;x<4;x++)
+            {
+                a[bnum[j]][x]=10000;
+            }
+    }
+    // cout<< worldModel->getUNum() << "   " << bnum[0] << bnum[1] << bnum[2] << bnum[3] << endl;
+    // worldModel->getRVSender()->clearStaticDrawings();
+    // for(int i=0;i<4;i++)
+    // {
+    // worldModel->getRVSender()->drawPoint("ball", target[i].getX(), target[i].getY(), 10.0f, RVSender::MAGENTA);
+    // worldModel->getRVSender()->drawText(to_string(bnum[i]), target[i].getX(), target[i].getY(), RVSender::MAGENTA);
+    // }
+    for(int i=0;i<4;i++)
+    {
+        int playerNum =  WO_TEAMMATE1 + bnum[i];
+        if (worldModel->getUNum() == playerNum) 
+         {
+        //     if(worldModel->getUNum() == WO_TEAMMATE3)
+        //      worldModel->getRVSender()->drawPoint("3333", target[i].getX(), target[i].getY(), 10.0f, RVSender::RED);
+             return goToTarget(collisionAvoidance(true, false, false, 1, .5,target[i], true));
+        }
+      
+    }
+}
+    
+   
+
+
+    /* if (worldModel->getUNum() == WO_TEAMMATE2)
+     {
 
           if (me.getDistanceTo(ball) > 1.5 )
              return goToTarget(collisionAvoidance(true, false, false, 1, .5,target1, true)); 
         else
-           return kickBall(KICK_DRIBBLE, goal); }
+           return kickBall(KICK_DRIBBLE, goal); 
+    }
 
-    else if (worldModel->getUNum() == WO_TEAMMATE1){ 
 
-         
-         temp = worldModel->getMyPosition();
+    else if (worldModel->getUNum() == WO_TEAMMATE1)
+    { 
+
        
         if(me.getDistanceTo(ball) > 1 && me.getDistanceTo(center) < 1)
         return SKILL_STAND;
 
-        else if(me.getDistanceTo(center) > 1){
+        else if(me.getDistanceTo(center) > 1)
+        {
             return goToTarget(collisionAvoidance(true, false, false, 1, .5,center, true));
         }
-        else if(me.getDistanceTo(ball) < 1 && me.getDistanceTo(center) < 1){
-           
-        return kickBall(KICK_IK, target);}
-        
-        }
-    else{return SKILL_STAND;}
-        
+        else if(me.getDistanceTo(ball) < 1 && me.getDistanceTo(center) < 1)
+        {
+            return kickBall(KICK_IK, target);}
     }
+
+    else{return SKILL_STAND;}*/
+        
+
 
 
 
@@ -112,62 +182,62 @@ SkillType NaoBehavior::selectSkill() {
  * Demo behavior where players form a rotating circle and kick the ball
  * back and forth
  */
-SkillType NaoBehavior::demoKickingCircle() {
-    // Parameters for circle
-    VecPosition center = VecPosition(-HALF_FIELD_X/2.0, 0, 0);
-   double circleRadius = 5.0;
-    double rotateRate = 2.5;
+// SkillType NaoBehavior::demoKickingCircle() {
+//     // Parameters for circle
+//     VecPosition center = VecPosition(-HALF_FIELD_X/2.0, 0, 0);
+//    double circleRadius = 5.0;
+//     double rotateRate = 2.5;
 
-    // Find closest player to ball
-    int playerClosestToBall = -1;
-    double closestDistanceToBall = 10000;
-    for(int i = WO_TEAMMATE1; i < WO_TEAMMATE1+NUM_AGENTS; ++i) {
-        VecPosition temp;
-        int playerNum = i - WO_TEAMMATE1 + 1;
-        if (worldModel->getUNum() == playerNum) {
-            // This is us
-            temp = worldModel->getMyPosition();
-        } else {
-            WorldObject* teammate = worldModel->getWorldObject( i );
-            if (teammate->validPosition) {
-               temp = teammate->pos;
-            } else {
-                continue;
-            }
-        }
-        temp.setZ(0);
+//     // Find closest player to ball
+//     int playerClosestToBall = -1;
+//     double closestDistanceToBall = 10000;
+//     for(int i = WO_TEAMMATE1; i < WO_TEAMMATE1+NUM_AGENTS; ++i) {
+//         VecPosition temp;
+//         int playerNum = i - WO_TEAMMATE1 + 1;
+//         if (worldModel->getUNum() == playerNum) {
+//             // This is us
+//             temp = worldModel->getMyPosition();
+//         } else {
+//             WorldObject* teammate = worldModel->getWorldObject( i );
+//             if (teammate->validPosition) {
+//                temp = teammate->pos;
+//             } else {
+//                 continue;
+//             }
+//         }
+//         temp.setZ(0);
 
-        double distanceToBall = temp.getDistanceTo(ball);
-        if (distanceToBall < closestDistanceToBall) {
-            playerClosestToBall = playerNum;
-            closestDistanceToBall = distanceToBall;
-        }
-    }
+//         double distanceToBall = temp.getDistanceTo(ball);
+//         if (distanceToBall < closestDistanceToBall) {
+//             playerClosestToBall = playerNum;
+//             closestDistanceToBall = distanceToBall;
+//         }
+//     }
 
-    if (playerClosestToBall == worldModel->getUNum()) {
-        // Have closest player kick the ball toward the center
-        return kickBall(KICK_FORWARD, center);
-    } else {
-        // Move to circle position around center and face the center
-       VecPosition localCenter = worldModel->g2l(center);
-        SIM::AngDeg localCenterAngle = atan2Deg(localCenter.getY(), localCenter.getX());
+//     if (playerClosestToBall == worldModel->getUNum()) {
+//         // Have closest player kick the ball toward the center
+//         return kickBall(KICK_FORWARD, center);
+//     } else {
+//         // Move to circle position around center and face the center
+//        VecPosition localCenter = worldModel->g2l(center);
+//         SIM::AngDeg localCenterAngle = atan2Deg(localCenter.getY(), localCenter.getX());
 
-        // Our desired target position on the circle
-        // Compute target based on uniform number, rotate rate, and time
-        VecPosition target = center + VecPosition(circleRadius,0,0).rotateAboutZ(360.0/(NUM_AGENTS-1)*(worldModel->getUNum()-(worldModel->getUNum() > playerClosestToBall ? 1 : 0)) + worldModel->getTime()*rotateRate);
+//         // Our desired target position on the circle
+//         // Compute target based on uniform number, rotate rate, and time
+//         VecPosition target = center + VecPosition(circleRadius,0,0).rotateAboutZ(360.0/(NUM_AGENTS-1)*(worldModel->getUNum()-(worldModel->getUNum() > playerClosestToBall ? 1 : 0)) + worldModel->getTime()*rotateRate);
 
-        // Adjust target to not be too close to teammates or the ball
-        target = collisionAvoidance(true /*teammate*/, false/*opponent*/, true/*ball*/, 1/*proximity thresh*/, .5/*collision thresh*/, target, true/*keepDistance*/);
+//         // Adjust target to not be too close to teammates or the ball
+//         target = collisionAvoidance(true /*teammate*/, false/*opponent*/, true/*ball*/, 1/*proximity thresh*/, .5/*collision thresh*/, target, true/*keepDistance*/);
 
-     if (me.getDistanceTo(target) < .25 && abs(localCenterAngle) <= 10) {
-            // Close enough to desired position and orientation so just stand
-            return SKILL_STAND;
-        } else if (me.getDistanceTo(target) < .5) {
-            // Close to desired position so start turning to face center
-          return goToTargetRelative(worldModel->g2l(target), localCenterAngle);
-       } else {
-            // Move toward target location
-           return goToTarget(target);
-        }
-    }
-}
+//      if (me.getDistanceTo(target) < .25 && abs(localCenterAngle) <= 10) {
+//             // Close enough to desired position and orientation so just stand
+//             return SKILL_STAND;
+//         } else if (me.getDistanceTo(target) < .5) {
+//             // Close to desired position so start turning to face center
+//           return goToTargetRelative(worldModel->g2l(target), localCenterAngle);
+//        } else {
+//             // Move toward target location
+//            return goToTarget(target);
+//         }
+//     }
+// }

@@ -25,8 +25,8 @@ int gPort = 3100;
 
 // Variables for connecting to the monitor port
 TCPSocket mSocket;
-string mHost = "127.0.0.1";
-int mPort = -1;
+string mHost = "4.2.2.1";
+int mPort = 3200;
 
 unsigned long long key = 0;
 

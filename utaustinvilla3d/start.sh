@@ -7,7 +7,7 @@
 AGENT_BINARY=agentspark
 BINARY_DIR="."
 LIBS_DIR="./libs"
-NUM_PLAYERS=3
+NUM_PLAYERS=4
 
 team="HFUT1"
 host="localhost"
