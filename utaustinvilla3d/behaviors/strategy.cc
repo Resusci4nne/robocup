@@ -22,40 +22,47 @@ SkillType NaoBehavior::selectSkill()
     // worldModel->getRVSender()->drawPoint("ball", ball.getX()+1, ball.getY(), 10.0f, RVSender::MAGENTA);
     double a[4][4];
     double bmin[4]={1000,1000,1000,1000};
-    int bnum[4]={-1};
+    int bnum[4]={0};
+    VecPosition tep;
+    bool isFallen;
     for(int i = 0; i < 4; ++i) 
     {
-        VecPosition temp;
+        WorldObject *tem = worldModel->getWorldObject(WO_TEAMMATE1 + i );
         int playerNum =  WO_TEAMMATE1 + i;
-        if (worldModel->getUNum() == playerNum) {
-            temp = worldModel->getMyPosition();
-            
-        } else {
-            WorldObject* teammate = worldModel->getWorldObject(WO_TEAMMATE1 + i );
-            if (teammate->validPosition) {
-               temp = teammate->pos;
-            } else {
-                continue;
-            }}
+        if (worldModel->getUNum() == playerNum) 
+        {
+            tep = me;
+            isFallen = worldModel->isFallen();
+        } else 
+        {
+            tem = worldModel->getWorldObject(WO_TEAMMATE1 + i );
+            if (tem->validPosition) 
+            {
+               tep = tem->pos;
+               isFallen = worldModel->getFallenTeammate(WO_TEAMMATE1 + i - 1);
+            } else 
+            {
+                for(int j=0;j<4;j++)
+                {
+                    a[i][j]=10000;
+
+                }
+            }
+        }
            for(int j=0;j<4;j++)
           {
-              a[i][j] =temp.getDistanceTo(target[j]);
-              if(worldModel->getFallenTeammate(WO_TEAMMATE1 + i ))
-              {
-                  a[i][j]+=1;
-
-              }
+              a[i][j] =tep.getDistanceTo(target[j])+(isFallen ? 1: 0);
+             
           } 
-        }
+    }
     
 
     for(int j=0;j<4;j++)
     {
         for(int i=0;i<4;i++)
         {
-            if(a[i][j]<bmin[j])
+            if(a[i][j]<a[bnum[j]][j])
             {
-                bmin[j]=a[i][j];
                 bnum[j]=i;
             }
             
@@ -77,8 +84,6 @@ SkillType NaoBehavior::selectSkill()
         int playerNum =  WO_TEAMMATE1 + bnum[i];
         if (worldModel->getUNum() == playerNum) 
          {
-        //     if(worldModel->getUNum() == WO_TEAMMATE3)
-        //      worldModel->getRVSender()->drawPoint("3333", target[i].getX(), target[i].getY(), 10.0f, RVSender::RED);
              return goToTarget(collisionAvoidance(true, false, false, 1, .5,target[i], true));
         }
       
